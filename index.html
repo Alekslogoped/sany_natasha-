@@ -66,15 +66,33 @@
 #sort {
   background-image: linear-gradient(#fff1d650, #59331c36), var(--gift-room);
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
 }
 #sort .hero {
-  background: linear-gradient(160deg, #fff9e8ee, #ecd4a7c9);
-  border: 2px solid #fff1c2;
-  box-shadow: 0 8px 22px #37231150, inset 0 0 0 3px #cda86b44;
+  align-self: end;
+  display: grid;
+  grid-template-rows: auto auto 34px;
+  gap: 4px;
+  min-height: 0;
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
-#sort .hero:hover, #sort .hero.over { border-color: #e4a638; background: #fff2ccd9; }
-#sort .hero .kid-art { filter: drop-shadow(0 5px 4px #60442735); }
+#sort .hero .kid-art {
+  height: clamp(130px, 31vw, 365px);
+  object-position: center bottom;
+  filter: drop-shadow(0 5px 3px #40240e65);
+}
+#sort .hero:hover .kid-art, #sort .hero.over .kid-art {
+  filter: drop-shadow(0 0 8px #ffe492) drop-shadow(0 5px 3px #40240e65);
+}
+#sort .hero h3 {
+  color: #fff8e9;
+  text-shadow: 0 1px 2px #492707, 0 0 5px #492707, 0 0 8px #492707;
+}
+#sort .collected { min-height: 0; }
+#sort .collected .item-art { width: clamp(14px, 2.5vw, 30px); height: 30px; }
 #sort .cards {
   padding: 12px;
   border-radius: 20px;
@@ -103,7 +121,7 @@ function startSearch(full=true){mode=full?'full':'search';stage='search';found.c
 function find(id){if(stage!=='search'||found.has(id))return;let it=currentTarget();if(!it)return;if(id!==it.id){const cue=$('searchCue');cue.classList.add('shake');setTimeout(()=>cue.classList.remove('shake'),350);return}found.add(id);room();progress();if(found.size===items.length){clearSearchCue();if(mode==='full')startSort();else finishSearch();return}promptSearch()}
 function advance(){if(stage==='search'){pending=null;if(found.size===12){if(mode==='full')startSort();else finishSearch();return}$('mini').innerHTML='';$('next').classList.add('hidden');$('hint').classList.remove('hidden');promptSearch()}else if(stage==='sort'){pending=null;selected=null;$('mini').innerHTML='';$('next').classList.add('hidden');if(given.size===12){finish();return}msg('Кому подарим следующую находку?','Выбери картинку и нажми на героя или перетащи подарок.');renderSort()}}
 function startSort(){clearSearchCue();stage='sort';pending=null;selected=null;given.clear();$('scene').classList.add('hidden');$('overlay').classList.add('hidden');$('sort').classList.remove('hidden');$('searchNav').classList.remove('active');$('sortNav').classList.add('active');$('hint').classList.add('hidden');$('next').classList.add('hidden');$('mini').innerHTML='';msg('Назови предмет и послушай звук','Перетащи картинку к герою или выбери картинку, затем героя.');renderSort();progress()}
-function renderSort(){ $('sort').innerHTML=`<button class="hero" data-sound="С" aria-label="Подарить Сане">${kid(false)}<h3>Саня <span class="badge">С</span></h3><p>Подарки со звуком [С]</p><div class="collected">${items.filter(i=>given.has(i.id)&&i.sound==='С').map(i=>icon(i.id)).join('')}</div></button><div class="cards">${[0,6,1,7,2,8,3,9,4,10,5,11].map(i=>{let it=items[i];return `<button class="card ${given.has(it.id)?'done':''} ${selected===it.id?'selected':''}" data-id="${it.id}" draggable="${!pending}" aria-label="${it.name}" aria-pressed="${selected===it.id}" ${given.has(it.id)?'disabled':''}>${icon(it.id)}</button>`}).join('')}</div><button class="hero" data-sound="Ш" aria-label="Подарить Наташе">${kid(true)}<h3>Наташа <span class="badge">Ш</span></h3><p>Подарки со звуком [Ш]</p><div class="collected">${items.filter(i=>given.has(i.id)&&i.sound==='Ш').map(i=>icon(i.id)).join('')}</div></button>`;
+function renderSort(){ $('sort').innerHTML=`<button class="hero" data-sound="С" aria-label="Подарить Сане">${kid(false)}<h3>Саня · [С]</h3><div class="collected">${items.filter(i=>given.has(i.id)&&i.sound==='С').map(i=>icon(i.id)).join('')}</div></button><div class="cards">${[0,6,1,7,2,8,3,9,4,10,5,11].map(i=>{let it=items[i];return `<button class="card ${given.has(it.id)?'done':''} ${selected===it.id?'selected':''}" data-id="${it.id}" draggable="${!pending}" aria-label="${it.name}" aria-pressed="${selected===it.id}" ${given.has(it.id)?'disabled':''}>${icon(it.id)}</button>`}).join('')}</div><button class="hero" data-sound="Ш" aria-label="Подарить Наташе">${kid(true)}<h3>Наташа · [Ш]</h3><div class="collected">${items.filter(i=>given.has(i.id)&&i.sound==='Ш').map(i=>icon(i.id)).join('')}</div></button>`;
 document.querySelectorAll('.card:not(.done)').forEach(el=>{el.onclick=()=>select(el.dataset.id);el.ondragstart=e=>{if(pending){e.preventDefault();return}selected=el.dataset.id;e.dataTransfer.setData('text/plain',selected);e.dataTransfer.effectAllowed='move'};el.onpointerdown=e=>{if(e.pointerType==='mouse'||pending)return;el._point={x:e.clientX,y:e.clientY};el.setPointerCapture(e.pointerId)};el.onpointerup=e=>{if(!el._point)return;let p=el._point;el._point=null;if(Math.hypot(e.clientX-p.x,e.clientY-p.y)<10)return;let hero=document.elementFromPoint(e.clientX,e.clientY)?.closest('.hero');if(hero){selected=el.dataset.id;give(hero.dataset.sound)}}});document.querySelectorAll('.hero').forEach(el=>{el.onclick=()=>give(el.dataset.sound);el.ondragover=e=>{e.preventDefault();el.classList.add('over')};el.ondragleave=()=>el.classList.remove('over');el.ondrop=e=>{e.preventDefault();el.classList.remove('over');give(el.dataset.sound)}})}
 function select(id){if(pending)return;selected=id;let it=items.find(i=>i.id===id);$('mini').innerHTML=icon(id);msg(it.name,'Какой звук слышишь: [С] или [Ш]? Кому отдашь подарок?');renderSort()}
 function give(sound){if(pending)return;if(!selected){msg('Сначала выбери подарок','Нажми на одну из картинок посередине.');return}let it=items.find(i=>i.id===selected);if(it.sound!==sound){msg('Произнеси слово ещё раз','Какой звук ты слышишь? Попробуй подарить другому герою.');let card=document.querySelector(`.card[data-id="${it.id}"]`);card?.classList.add('shake');setTimeout(()=>card?.classList.remove('shake'),400);return}given.add(it.id);pending=it;msg(`${it.name} — ${sound==='С'?'Сане':'Наташе'}!`,`Скажи: «Я отдам ${it.acc} ${sound==='С'?'Сане':'Наташе'}».`);$('mini').innerHTML=icon(it.id);$('next').textContent=given.size===12?'На праздник! ✦':'Следующий подарок →';$('next').classList.remove('hidden');renderSort();progress()}
