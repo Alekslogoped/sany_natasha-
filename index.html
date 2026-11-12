@@ -143,9 +143,14 @@
 .finale img { display: block; width: 100%; height: auto; }
 .finale figcaption {
   position: absolute;
-  inset: auto 0 0;
-  padding: .35em .5em;
-  background: #392317d9;
+  bottom: .45em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 16px);
+  padding: .3em .65em;
+  border-radius: .45em;
+  background: #392317a6;
   color: #fff9eb;
   text-align: center;
   font-size: clamp(14px, min(4cqw, 6cqh), 42px);
